@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Gerrit Riessen"]
   s.date = %q{2010-10-14}
-  s.description = %q{Basic ruby client based on savon.}
+  s.description = %q{Basic ruby client based on savon. See http://matelso.de for more details.}
   s.email = %q{gerrit.riessen@gmail.com}
   s.extra_rdoc_files = [
     "LICENSE",
@@ -20,13 +20,18 @@ Gem::Specification.new do |s|
   s.files = [
     ".document",
      ".gitignore",
+     ".rvmrc",
      "Gemfile",
+     "Gemfile.lock",
      "LICENSE",
      "README",
      "README.rdoc",
      "Rakefile",
      "VERSION",
      "lib/matelso_wsdl_client.rb",
+     "lib/matelso_wsdl_client/call.rb",
+     "lib/matelso_wsdl_client/fax.rb",
+     "lib/matelso_wsdl_client/vanity.rb",
      "matelso_wsdl_client.gemspec",
      "test/helper.rb",
      "test/test_matelso_wsdl_client.rb"
@@ -46,12 +51,12 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_development_dependency(%q<thoughtbot-shoulda>, [">= 0"])
+      s.add_runtime_dependency(%q<savon>, [">= 0"])
     else
-      s.add_dependency(%q<thoughtbot-shoulda>, [">= 0"])
+      s.add_dependency(%q<savon>, [">= 0"])
     end
   else
-    s.add_dependency(%q<thoughtbot-shoulda>, [">= 0"])
+    s.add_dependency(%q<savon>, [">= 0"])
   end
 end
 

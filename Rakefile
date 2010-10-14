@@ -16,12 +16,11 @@ begin
   Jeweler::Tasks.new do |gem|
     gem.name = "matelso_wsdl_client"
     gem.summary = %Q{Provide a simple ruby client for Matelso's WSDL API'}
-    gem.description = %Q{Basic ruby client based on savon.}
+    gem.description = %Q{Basic ruby client based on savon. See http://matelso.de for more details.}
     gem.email = "gerrit.riessen@gmail.com"
     gem.homepage = "http://github.com/gorenje/matelso_wsdl_client"
     gem.authors = ["Gerrit Riessen"]
-    gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.add_dependency "savon", ">= 0"
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

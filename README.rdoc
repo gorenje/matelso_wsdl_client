@@ -2,9 +2,18 @@
 
 Simple and not yet implemented gem for using the Matelso WSDL API.
 
+For more information on the service: http://www.matelso.de
+
+= Work in Progress
+
+This is not release ready nor production ready, this is work progress that I
+personally require -- use at your own risk. Although, it's very unlikely that
+I'll ever will take any responsibility for this code ;)
+
 = Dependencies
 
-* savon for WSDL interaction.
+* savon for WSDL interaction. 
+  http://github.com/rubiii/savon
 
 == Note on Patches/Pull Requests
  
