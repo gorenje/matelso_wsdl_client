@@ -1,4 +1,5 @@
 require 'savon'
+require 'base64'
 
 module MatelsoWsdlClient
 
@@ -54,7 +55,7 @@ module MatelsoWsdlClient
     end
 
     def wsdl_url_for(action,config)
-      (c = getp(action,config) && getp(:wsdl_url,c)) || getp(action,WsdlUrls)
+      ((c = getp(action,config)) && getp(:wsdl_url,c)) || getp(action,MatelsoWsdlClient::WsdlUrls)
     end
     
     def method_missing(method_id, *args, &block)
