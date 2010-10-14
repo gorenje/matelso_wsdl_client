@@ -1,6 +1,10 @@
 = matelso_wsdl_client
 
-Description goes here.
+Simple and not yet implemented gem for using the Matelso WSDL API.
+
+= Dependencies
+
+* savon for WSDL interaction.
 
 == Note on Patches/Pull Requests
  

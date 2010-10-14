@@ -1,17 +1,26 @@
 require 'rubygems'
+require 'bundler'
+
+begin
+  Bundler.setup(:default, :development)
+rescue Bundler::BundlerError => e
+  $stderr.puts e.message
+  $stderr.puts "Run `bundle install` to install missing gems"
+  exit e.status_code
+end
+
 require 'rake'
 
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "matelso_wsdl_client"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = %Q{Provide a simple ruby client for Matelso's WSDL API'}
+    gem.description = %Q{Basic ruby client based on savon.}
     gem.email = "gerrit.riessen@gmail.com"
     gem.homepage = "http://github.com/gorenje/matelso_wsdl_client"
     gem.authors = ["Gerrit Riessen"]
     gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
-    gem.add_dependency "savon", ">= 0"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
