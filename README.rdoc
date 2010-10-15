@@ -15,6 +15,10 @@ I'll ever will take any responsibility for this code ;)
 * savon for WSDL interaction. 
   http://github.com/rubiii/savon
 
+= Bugs
+
+http://github.com/rubiii/savon/issues#issue/96
+
 == Note on Patches/Pull Requests
  
 * Fork the project.
