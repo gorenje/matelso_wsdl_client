@@ -58,12 +58,22 @@ module MatelsoWsdlClient
       ((c = getp(action,config)) && getp(:wsdl_url,c)) || getp(action,MatelsoWsdlClient::WsdlUrls)
     end
     
+    def handle_response_errors(&block)
+      resp = yield
+      raise MatelsoSoapError, "Soap error: #{resp.soap_fault}" if resp.soap_fault?
+      raise MatelsoHttpError, "Http error: #{resp.http_error}" if resp.http_error?
+      resp
+    end
+
     def method_missing(method_id, *args, &block)
       if [:call, :vanity, :fax].include?(method_id)
         begin
           send("%s!" % method_id, *args)
-          true
         rescue Savon::SOAPFault => e
+          false
+        rescue MatelsoWsdlClient::MatelsoHttpError => e
+          false
+        rescue MatelsoWsdlClient::MatelsoSoapError => e
           false
         end
       else
@@ -73,6 +83,9 @@ module MatelsoWsdlClient
   end
   
   class NotEnoughParameters < RuntimeError ; end
+  class MatelsoHttpError < RuntimeError ; end
+  class MatelsoSoapError < RuntimeError ; end
+  class MatelsoFailedMe < RuntimeError ; end
 end
 
 %w(

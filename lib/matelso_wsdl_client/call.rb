@@ -41,23 +41,27 @@ module MatelsoWsdlClient
 
       client, defaults = Savon::Client.new(@call_wsdl_url), (@defaults["call"] || {})
 
-      client.call_call_initiieren do |soap|
-        soap.body = { 
-          'wsdl:Ortsnetz1'       => getp(:from_area_code, opts),
-          'wsdl:Nummer1'         => getp(:from_number, opts),
-          'wsdl:Ortsnetz2'       => getp(:to_area_code, opts),
-          'wsdl:Nummer2'         => getp(:to_number, opts),
-          'wsdl:Ansage1'         => def_or_paras(:announcement_from,defaults,opts),       
-          "wsdl:Ansage2"         => def_or_paras(:announcement_to,defaults,opts),
-          'wsdl:MaxDauer'        => def_or_paras(:max_call_duration,defaults,opts),
-          'wsdl:Delay1'          => def_or_paras(:call_delay,defaults,opts),
-          'wsdl:MaxRing2'        => def_or_paras(:max_ring_count,defaults,opts),
-          'wsdl:Ortsnetz3'       => getp(:error_area_code, opts),
-          'wsdl:Nummer3'         => getp(:error_number, opts),
-          'wsdl:PartnerId'       => @partner_id,  
-          'wsdl:Partnerkennwort' => @partner_password,
-        }
+      resp = handle_response_errors do
+        client.call_call_initiieren do |soap|
+          soap.body = { 
+            'wsdl:Ortsnetz1'       => getp(:from_area_code, opts),
+            'wsdl:Nummer1'         => getp(:from_number, opts),
+            'wsdl:Ortsnetz2'       => getp(:to_area_code, opts),
+            'wsdl:Nummer2'         => getp(:to_number, opts),
+            'wsdl:Ansage1'         => def_or_paras(:announcement_from,defaults,opts),       
+            "wsdl:Ansage2"         => def_or_paras(:announcement_to,defaults,opts),
+            'wsdl:MaxDauer'        => def_or_paras(:max_call_duration,defaults,opts),
+            'wsdl:Delay1'          => def_or_paras(:call_delay,defaults,opts),
+            'wsdl:MaxRing2'        => def_or_paras(:max_ring_count,defaults,opts),
+            'wsdl:Ortsnetz3'       => getp(:error_area_code, opts),
+            'wsdl:Nummer3'         => getp(:error_number, opts),
+            'wsdl:PartnerId'       => @partner_id,  
+            'wsdl:Partnerkennwort' => @partner_password,
+          }
+        end
       end
+
+      ## TODO do something with the resp ...
     end
   end
 end

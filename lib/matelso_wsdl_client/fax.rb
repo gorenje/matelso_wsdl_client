@@ -28,23 +28,27 @@ module MatelsoWsdlClient
       
       client, defaults = Savon::Client.new(@fax_wsdl_url), (@defaults["fax"] || {})
 
-      response = client.send_fax do |soap| 
-        soap.body = { 
-          "wsdl:PartnerId"         => @partner_id,
-          "wsdl:PartnerPassword"   => @partner_password,
-          "wsdl:Account"           => @partner_account,
-          "wsdl:BillId"            => def_or_paras(:billid, defaults, opts),
-          "wsdl:RefId"             => def_or_paras(:referenceid, defaults, opts),
-          "wsdl:SessionId_Partner" => def_or_paras(:sessionid, defaults, opts),
-          "wsdl:Destination"       => getp(:destination, opts),
-          "wsdl:PDFFile"           => Base64.encode64(getp(:pdf_data,opts)),
-          "wsdl:FaxStationInfo"    => def_or_paras(:station_info, defaults, opts),
-          "wsdl:FaxStationNumber"  => def_or_paras(:station_number, defaults, opts),
-          "wsdl:retrycount"        => def_or_paras(:retry_count, defaults, opts),
-          "wsdl:EMailAdress"       => def_or_paras(:email, defaults, opts),
-        }
+      resp = handle_response_errors do
+        client.send_fax do |soap| 
+          soap.body = { 
+            "wsdl:PartnerId"         => @partner_id,
+            "wsdl:PartnerPassword"   => @partner_password,
+            "wsdl:Account"           => @partner_account,
+            "wsdl:BillId"            => def_or_paras(:billid, defaults, opts),
+            "wsdl:RefId"             => def_or_paras(:referenceid, defaults, opts),
+            "wsdl:SessionId_Partner" => def_or_paras(:sessionid, defaults, opts),
+            "wsdl:Destination"       => getp(:destination, opts),
+            "wsdl:PDFFile"           => Base64.encode64(getp(:pdf_data,opts)),
+            "wsdl:FaxStationInfo"    => def_or_paras(:station_info, defaults, opts),
+            "wsdl:FaxStationNumber"  => def_or_paras(:station_number, defaults, opts),
+            "wsdl:retrycount"        => def_or_paras(:retry_count, defaults, opts),
+            "wsdl:EMailAdress"       => def_or_paras(:email, defaults, opts),
+          }
+        end
       end
-      response.to_hash["send_fax_result"]
+
+      ## TODO do more with the response
+      resp.to_hash["send_fax_result"]
     end
   end
 end
