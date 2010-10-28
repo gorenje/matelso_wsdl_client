@@ -3,11 +3,12 @@ require 'base64'
 
 module MatelsoWsdlClient
 
-  BaseUrl = "http://www.matelso.de/Partnerbereich" unless defined?(BaseUrl)
+  BaseUrl = "https://www.matelso.de/Partnerbereich" unless defined?(BaseUrl)
   WsdlUrls = {
     :fax    => "#{BaseUrl}/Matelso_Click2Faxservice_v_1_0.asmx?WSDL",
     :call   => "#{BaseUrl}/Matelso_Call2callservice_v_4_0.asmx?WSDL",
     :vanity => "#{BaseUrl}/Matelso_Rufnummernservice_v2_0.asmx?WSDL",
+    :mrs    => "#{BaseUrl}/Matelso_MRS_v_2_0.asmx?WSDL",
   } unless defined?(WsdlUrls)
 
   class Client
@@ -30,13 +31,15 @@ module MatelsoWsdlClient
       @partner_account  = getp(:account, p)
       
       @fax_wsdl_url    = wsdl_url_for(:fax,config)
+      @mrs_wsdl_url    = wsdl_url_for(:mrs,config)
       @call_wsdl_url   = wsdl_url_for(:call,config)
       @vanity_wsdl_url = wsdl_url_for(:vanity,config)
       
       @defaults = { 
         "fax"    => config["fax"], 
         "call"   => config["call"], 
-        "vanity" => config["vanity"]
+        "vanity" => config["vanity"],
+        "mrs"    => config["mrs"]
       }
     end
     
@@ -55,7 +58,8 @@ module MatelsoWsdlClient
     end
 
     def wsdl_url_for(action,config)
-      ((c = getp(action,config)) && getp(:wsdl_url,c)) || getp(action,MatelsoWsdlClient::WsdlUrls)
+      ((c = getp(action,config)) && getp(:wsdl_url,c)) || 
+        getp(action,MatelsoWsdlClient::WsdlUrls)
     end
     
     def handle_response_errors(&block)
