@@ -1,4 +1,5 @@
-require 'helper'
+# -*- coding: utf-8 -*-
+require File.dirname(__FILE__) + '/helper.rb'
 require 'tempfile'
 require 'yaml'
 
@@ -6,12 +7,6 @@ require 'yaml'
 #   The test contact the actual service of Matelso, there is no mocking going on here ...
 #   But they've not complained yet!
 class TestMatelsoWsdlClient < Test::Unit::TestCase
-  def with_tempfile(&block)
-    Tempfile.open("matelso-test") do |tempfile|
-      yield(tempfile)
-    end
-  end
-  
   context "configuration" do
     should "accept a string" do
       client = nil
@@ -48,7 +43,7 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
   
   context "fax" do
     should "fail if destination or data were not provided" do
-      client = MatelsoWsdlClient::Client.new({ "partner"=>{"id"=>12, "password"=>12, "account"=>3 }})
+      client = get_client
       [:fax, :fax!].each do |method_name|
         assert_raises MatelsoWsdlClient::NotEnoughParameters, "Failed for #{method_name}" do
           client.send(method_name, :pdf_data => "a")
@@ -60,12 +55,12 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
     end
     
     should "fail if nothing is set that makes sense" do
-      client = MatelsoWsdlClient::Client.new({ "partner"=>{"id"=>12, "password"=>12, "account"=>3 }})
+      client = get_client
       assert !client.fax(:pdf_data => "a", :destination => "1234")
     end
 
     should "Soap fault" do
-      client = MatelsoWsdlClient::Client.new({ "partner"=>{"id"=>12, "password"=>12, "account"=>3 }})
+      client = get_client
       assert_raises Savon::SOAPFault do
         client.fax!(:pdf_data => "a", :destination => "1234")
       end
@@ -74,7 +69,7 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
   
   context "call" do
     should "fail if not all required parameters are provided" do
-      client = MatelsoWsdlClient::Client.new({ "partner"=>{"id"=>12, "password"=>12, "account"=>3 }})
+      client = get_client
 
       [:call, :call!].each do |method_name|
         assert_raises MatelsoWsdlClient::NotEnoughParameters, "Failed for #{method_name}" do
@@ -96,7 +91,7 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
     end
     
     should "fail with an soap fault" do
-      client = MatelsoWsdlClient::Client.new({ "partner"=>{"id"=>12, "password"=>12, "account"=>3 }})
+      client = get_client
       assert_raises Savon::SOAPFault do
         client.call!(:error_area_code => "1", :error_number => "2",
                      :from_area_code => "1", :from_number => "2",
@@ -107,7 +102,7 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
 
   context "vanity" do
     should "fail if not all required parameters are provided" do
-      client = MatelsoWsdlClient::Client.new({"partner"=>{"id"=>12, "password"=>12, "account"=>3}})
+      client = get_client
       [:vanity, :vanity!].each do |method_name|
         assert_raises MatelsoWsdlClient::NotEnoughParameters, "Failed for #{method_name}" do
           client.send(method_name, :country_code => "1", :number => "2")
@@ -125,10 +120,104 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
     end
 
     should "fail with an soap fault" do
-      client = MatelsoWsdlClient::Client.new({ "partner"=>{"id"=>12, "password"=>12, "account"=>3 }})
+      client = get_client
       assert_raises Savon::SOAPFault do
         client.vanity!(:country_code => "1", :password => 1, :area_code => 12, :number => 12)
       end
+    end
+  end
+
+  context "mrs" do
+
+    should "create_subscriber requires a bunch of parameters" do
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_raises MatelsoWsdlClient::NotEnoughParameters do
+        client.create_subscriber!({})
+      end
+    end
+    
+    should "create_subscriber work if parameters defined" do
+      parameters = {
+        :salutation            => "Herr", 
+        :first_name            => "Ingo", 
+        :last_name             => "Bohg", 
+        :firm_name             => "TopTarif",
+        :legal_form            => "GmbH", 
+        :street                => "Schönhauser Allee", 
+        :house_number          => 6, 
+        :house_number_additive => "", 
+        :postcode              => "10119", 
+        :city                  => "Berlin", 
+        :country               => "DE"
+      }
+
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_authentication_error { client.create_subscriber!(parameters) }
+    end
+
+    should "be able to delete one subscriber" do
+      parameters = {
+        :subscriber_id => ENV["subid"] || 12345
+      }
+      
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_authentication_error { client.delete_subscriber!(parameters) }
+    end
+    
+    should "be able to show all subscribers" do
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_authentication_error { client.show_subscribers! }
+      ## can be used to display information on the subscribers where result is
+      ## the result of client.show_subscribers!
+      # tmp = [:subscriber_id, :ndc, :first_name, :last_name, :firm_name]
+      # result[:subscribers].each do |sub|
+      #  puts "ID: %s NDC: %s Name: %s %s Company: %s" % tmp.map { |a| sub[a] }
+      # end
+    end
+
+    should "be able to show one subscriber" do
+      parameters = {
+        :subscriber_id => ENV["subid"] || 12345
+      }
+      
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      result = client.show_subscriber!(parameters)
+      assert_equal "error", result[:status]
+      assert_equal "No subscriber found with ID '#{parameters[:subscriber_id]}'", result[:msg]
+    end
+    
+    should 'be able to get a vanity number' do
+      parameters = { 
+        :subscriber_id => ENV["subid"] || 12345,
+        :area_code => ENV["area_code"] || "1234"
+      }
+      
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_authentication_error { client.create_vanity_number!(parameters) }
+    end
+    
+    should "be possible to delete a vanity number" do
+      parameters = { 
+        :vanity_number => ENV["vanity_number"] || 123456789,
+      }
+      
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_authentication_error { client.delete_vanity_number!(parameters) }
+    end
+    
+    should "be able to route vanity number" do
+      parameters = { 
+        :vanity_number => ENV["vanity_number"] || 123456789,
+        :dest_number => ENV["dest_number"] || 123456789,
+      }
+      
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_authentication_error { client.route_vanity_number!(parameters) }
+    end
+    
+    should "be able to test callback url" do
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_authentication_error { client.test_callback_url!.to_hash }
     end
   end
 end

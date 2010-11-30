@@ -93,5 +93,5 @@ module MatelsoWsdlClient
 end
 
 %w(
- fax vanity call
+ fax vanity call mrs
 ).each { |a| require File.dirname(__FILE__) + "/matelso_wsdl_client/#{a}.rb" }
