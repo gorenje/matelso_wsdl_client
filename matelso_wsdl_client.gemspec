@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{matelso_wsdl_client}
-  s.version = "0.0.3"
+  s.version = "0.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Gerrit Riessen"]
-  s.date = %q{2010-10-21}
+  s.date = %q{2010-11-30}
   s.description = %q{Basic ruby client based on savon. See http://matelso.de for more details.}
   s.email = %q{gerrit.riessen@gmail.com}
   s.extra_rdoc_files = [
@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
      "lib/matelso_wsdl_client.rb",
      "lib/matelso_wsdl_client/call.rb",
      "lib/matelso_wsdl_client/fax.rb",
+     "lib/matelso_wsdl_client/mrs.rb",
      "lib/matelso_wsdl_client/vanity.rb",
      "matelso_wsdl_client.gemspec",
      "test/helper.rb",
