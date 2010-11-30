@@ -69,28 +69,6 @@ module MatelsoWsdlClient
       resp
     end
 
-    def add_soap_prefix(hsh=nil, &block)
-      (hsh || yield).inject({}) { |t,(key, value)| t.merge( "wsdl:#{key}" => value ) }
-    end
-
-    # pass in the result hash from the soap call and define (in the block) the code that
-    # should be executed on success. This returns a hash that is merged with the hash
-    # that is returned on success.
-    def handle_response_hash(hsh, &block)
-      case hsh[:status]
-      when "failed" 
-        { :status => "error", 
-          :msg => ("%s %s" % [:message,:additional_message].map {|a| hsh[:data][a]}).strip
-        }
-      when "success"
-        { :status => "ok" }.merge(yield(hsh))
-      else
-        { :status => "unknown",
-          :data => hsh
-        }
-      end
-    end
-
     def method_missing(method_id, *args, &block)
       if [:call, :vanity, :fax].include?(method_id)
         begin

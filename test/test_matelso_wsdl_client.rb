@@ -7,24 +7,6 @@ require 'yaml'
 #   The test contact the actual service of Matelso, there is no mocking going on here ...
 #   But they've not complained yet!
 class TestMatelsoWsdlClient < Test::Unit::TestCase
-  def with_tempfile(&block)
-    Tempfile.open("matelso-test") do |tempfile|
-      yield(tempfile)
-    end
-  end
-  
-  # if you want to do a "live" test, then define the correct authentication details on the command
-  # line, e.g.
-  #      pid=partner-id ppword='partnerpword' paccount=partner-account \
-  #         ruby test/test_matelso_wsdl_client.rb -n "/work if parameters defined/"
-  def get_client(klazz = MatelsoWsdlClient::Client)
-    klazz.new({"partner" => {
-                  "id"       => ENV["pid"]      || 12, 
-                  "password" => ENV["ppword"]   || 12, 
-                  "account"  => ENV["paccount"] || 3
-                }})
-  end
-  
   context "configuration" do
     should "accept a string" do
       client = nil
@@ -146,6 +128,7 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
   end
 
   context "mrs" do
+
     should "create_subscriber requires a bunch of parameters" do
       client = get_client(MatelsoWsdlClient::MRS::Client)
       assert_raises MatelsoWsdlClient::NotEnoughParameters do
@@ -169,34 +152,27 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
       }
 
       client = get_client(MatelsoWsdlClient::MRS::Client)
-      result = client.create_subscriber!(parameters)
-      assert_equal "error", result[:status]
-      assert_equal "Authentication failed", result[:msg]
+      assert_authentication_error { client.create_subscriber!(parameters) }
     end
-    
+
     should "be able to delete one subscriber" do
       parameters = {
         :subscriber_id => ENV["subid"] || 12345
       }
       
       client = get_client(MatelsoWsdlClient::MRS::Client)
-      result = client.delete_subscriber!(parameters)
-      assert_equal "error", result[:status]
-      assert_equal "Authentication failed", result[:msg]
+      assert_authentication_error { client.delete_subscriber!(parameters) }
     end
     
     should "be able to show all subscribers" do
       client = get_client(MatelsoWsdlClient::MRS::Client)
-      result = client.show_subscribers!
-
-      ## can be used to display information on the subscribers
+      assert_authentication_error { client.show_subscribers! }
+      ## can be used to display information on the subscribers where result is
+      ## the result of client.show_subscribers!
       # tmp = [:subscriber_id, :ndc, :first_name, :last_name, :firm_name]
       # result[:subscribers].each do |sub|
       #  puts "ID: %s NDC: %s Name: %s %s Company: %s" % tmp.map { |a| sub[a] }
       # end
-      
-      assert_equal "error", result[:status]
-      assert_equal "Authentication failed", result[:msg]
     end
 
     should "be able to show one subscriber" do
@@ -217,9 +193,7 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
       }
       
       client = get_client(MatelsoWsdlClient::MRS::Client)
-      result = client.create_vanity_number!(parameters)
-      assert_equal "error", result[:status]
-      assert_equal "Authentication failed", result[:msg]
+      assert_authentication_error { client.create_vanity_number!(parameters) }
     end
     
     should "be possible to delete a vanity number" do
@@ -228,9 +202,7 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
       }
       
       client = get_client(MatelsoWsdlClient::MRS::Client)
-      result = client.delete_vanity_number!(parameters)
-      assert_equal "error", result[:status]
-      assert_equal "Authentication failed", result[:msg]
+      assert_authentication_error { client.delete_vanity_number!(parameters) }
     end
     
     should "be able to route vanity number" do
@@ -240,9 +212,12 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
       }
       
       client = get_client(MatelsoWsdlClient::MRS::Client)
-      result = client.route_vanity_number!(parameters)
-      assert_equal "error", result[:status]
-      assert_equal "Authentication failed", result[:msg]
+      assert_authentication_error { client.route_vanity_number!(parameters) }
+    end
+    
+    should "be able to test callback url" do
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_authentication_error { client.test_callback_url!.to_hash }
     end
   end
 end
