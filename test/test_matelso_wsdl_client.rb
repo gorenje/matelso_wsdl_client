@@ -155,17 +155,17 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
     
     should "create_subscriber work if parameters defined" do
       parameters = {
-        "salutation"            => "Herr", 
-        "first_name"            => "Ingo", 
-        "last_name"             => "Bohg", 
-        "firm_name"             => "TopTarif",
-        "legal_form"            => "GmbH", 
-        "street"                => "Schönhauser Allee", 
-        "house_number"          => 6, 
-        "house_number_additive" => "", 
-        "postcode"              => "10119", 
-        "city"                  => "Berlin", 
-        "country"               => "DE"
+        :salutation            => "Herr", 
+        :first_name            => "Ingo", 
+        :last_name             => "Bohg", 
+        :firm_name             => "TopTarif",
+        :legal_form            => "GmbH", 
+        :street                => "Schönhauser Allee", 
+        :house_number          => 6, 
+        :house_number_additive => "", 
+        :postcode              => "10119", 
+        :city                  => "Berlin", 
+        :country               => "DE"
       }
 
       client = get_client(MatelsoWsdlClient::MRS::Client)
@@ -188,6 +188,13 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
     should "be able to show all subscribers" do
       client = get_client(MatelsoWsdlClient::MRS::Client)
       result = client.show_subscribers!
+
+      ## can be used to display information on the subscribers
+      # tmp = [:subscriber_id, :ndc, :first_name, :last_name, :firm_name]
+      # result[:subscribers].each do |sub|
+      #  puts "ID: %s NDC: %s Name: %s %s Company: %s" % tmp.map { |a| sub[a] }
+      # end
+      
       assert_equal "error", result[:status]
       assert_equal "Authentication failed", result[:msg]
     end
@@ -211,6 +218,29 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
       
       client = get_client(MatelsoWsdlClient::MRS::Client)
       result = client.create_vanity_number!(parameters)
+      assert_equal "error", result[:status]
+      assert_equal "Authentication failed", result[:msg]
+    end
+    
+    should "be possible to delete a vanity number" do
+      parameters = { 
+        :vanity_number => ENV["vanity_number"] || 123456789,
+      }
+      
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      result = client.delete_vanity_number!(parameters)
+      assert_equal "error", result[:status]
+      assert_equal "Authentication failed", result[:msg]
+    end
+    
+    should "be able to route vanity number" do
+      parameters = { 
+        :vanity_number => ENV["vanity_number"] || 123456789,
+        :dest_number => ENV["dest_number"] || 123456789,
+      }
+      
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      result = client.route_vanity_number!(parameters)
       assert_equal "error", result[:status]
       assert_equal "Authentication failed", result[:msg]
     end

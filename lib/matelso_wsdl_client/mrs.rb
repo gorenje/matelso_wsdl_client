@@ -147,7 +147,8 @@ module MatelsoWsdlClient::MRS
         inject(resp.to_hash) { |rhsh, elem| rhsh[elem] || {} }
       
       handle_response_hash(hsh) do |hsh|
-        hsh[:data].merge( :msg => hsh[:data][:message] )
+        d = hsh[:data]
+        { :country_code => d[:cc], :area_code => d[:ndc], :vanity_number => d[:sn] }
       end
     end
     
@@ -168,8 +169,13 @@ module MatelsoWsdlClient::MRS
         end
       end
 
-      ## TODO do more with this response
-      resp
+      ## Retrieve the item element if it's available, else hsh is empty. 
+      hsh = [:delete_b_number_response, :delete_b_number_result, :item].
+        inject(resp.to_hash) { |rhsh, elem| rhsh[elem] || {} }
+      
+      handle_response_hash(hsh) do |hsh|
+        { :deleted_vanity_number => getp(:vanity_number, opts) }
+      end
     end
 
     def route_vanity_number!(opts)
@@ -189,10 +195,14 @@ module MatelsoWsdlClient::MRS
         end
       end
 
-      ## TODO do more with the response
-      resp
+      ## Retrieve the item element if it's available, else hsh is empty. 
+      hsh = [:apply_profile_response, :apply_profile_result, :item].
+        inject(resp.to_hash) { |rhsh, elem| rhsh[elem] || {} }
+      
+      handle_response_hash(hsh) do |hsh|
+        { :vanity_number => getp(:vanity_number, opts), :dest_number => getp(:dest_number, opts) }
+      end
     end
-
   end
 end
 
