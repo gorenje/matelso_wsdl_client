@@ -53,8 +53,8 @@ module MatelsoWsdlClient::MRS
         end
       end
       
-      handle_response_hash(get_response_hash(resp, [:create_subscriber_response, 
-                                                    :create_subscriber_result])) do |hsh|
+      handle_response_hash(get_response_hash(resp, [:create_subscriberResponse, 
+                                                    :create_subscriberResult])) do |hsh|
         { :subscriber_id => hsh[:data][:subscriber_id] }
       end
     end
@@ -79,8 +79,8 @@ module MatelsoWsdlClient::MRS
         end
       end
       
-      handle_response_hash(get_response_hash(resp, [:delete_subscriber_response, 
-                                                    :delete_subscriber_result])) do |hsh|
+      handle_response_hash(get_response_hash(resp, [:delete_subscriberResponse, 
+                                                    :delete_subscriberResult])) do |hsh|
         { :deleted_subscriber_id => getp(:subscriber_id,opts) }
       end
     end
@@ -100,8 +100,8 @@ module MatelsoWsdlClient::MRS
         end
       end
       
-      handle_response_hash(get_response_hash(resp, [:show_subscriber_response, 
-                                                    :show_subscriber_result])) do |hsh|
+      handle_response_hash(get_response_hash(resp, [:show_subscriberResponse, 
+                                                    :show_subscriberResult])) do |hsh|
         { :subscribers => hsh[:data] }
       end
     end
@@ -149,8 +149,8 @@ module MatelsoWsdlClient::MRS
         end
       end
       
-      handle_response_hash(get_response_hash(resp, [:assign_b_number_response, 
-                                                    :assign_b_number_result])) do |hsh|
+      handle_response_hash(get_response_hash(resp, [:assign_b_numberResponse, 
+                                                    :assign_b_numberResult])) do |hsh|
         d = hsh[:data]
         # Not being a Telco person myself:
         #   NDC - National Destination Code
@@ -176,8 +176,8 @@ module MatelsoWsdlClient::MRS
         end
       end
       
-      handle_response_hash( get_response_hash(resp, [:delete_b_number_response, 
-                                                     :delete_b_number_result])) do |hsh|
+      handle_response_hash( get_response_hash(resp, [:delete_b_numberResponse, 
+                                                     :delete_b_numberResult])) do |hsh|
         { :deleted_vanity_number => getp(:vanity_number, opts) }
       end
     end
@@ -200,8 +200,8 @@ module MatelsoWsdlClient::MRS
         end
       end
 
-      handle_response_hash( get_response_hash(resp, [:apply_profile_response, 
-                                                     :apply_profile_result]) ) do |hsh|
+      handle_response_hash( get_response_hash(resp, [:apply_profileResponse, 
+                                                     :apply_profileResult]) ) do |hsh|
         { :vanity_number => getp(:vanity_number, opts), :dest_number => getp(:dest_number, opts) }
       end
     end
@@ -222,9 +222,9 @@ module MatelsoWsdlClient::MRS
         end
       end
       
-      handle_response_hash( get_response_hash(resp, [:get_testrequest_response, 
-                                                     :get_testrequest_result]) ) do |hsh|
-        {}
+      handle_response_hash( get_response_hash(resp, [:get_testrequestResponse, 
+                                                     :get_testrequestResult]) ) do |hsh|
+        { :http_status => hsh[:data][:http_status] }
       end
     end
 
@@ -241,8 +241,19 @@ module MatelsoWsdlClient::MRS
     
     # Retrieve the item element from around it's casing. If it's not available,
     # then we return an empty hash.
+    #
+    # Bug: the use of snakecase here is because Savon has a problem (or does Rails 2.3.8) in
+    # rails environment that snakecase returns different values for the following:
+    #   "show_subscriberResponse".snakecase
+    # Within rails:
+    #   "show_subscriberresponse"
+    # Outside of rails:
+    #   "show_subscriber_response"
+    # So we use the same call here. (This is a problem since all the Matelso element names 
+    # have strange use of cases.)
     def get_response_hash(response, casing)
-      (casing + [:item]).inject(response.to_hash) { |rhsh, elem| rhsh[elem] || {} }
+      (casing.map { |a| a.to_s.snakecase.to_sym } + [:item]).
+        inject(response.to_hash) { |rhsh, elem| rhsh[elem] || {} }
     end
     
     # pass in the result hash from the soap call and define (in the block) the code that
@@ -255,7 +266,7 @@ module MatelsoWsdlClient::MRS
           :msg => ("%s %s" % [:message,:additional_message].map {|a| hsh[:data][a]}).strip
         }
       when "success"
-        { :status => "ok" }.merge(yield(hsh))
+        (yield(hsh) || {}).merge( :status => "ok" ) # ensure that :status is always "ok"
       else
         { :status => "unknown",
           :data => hsh

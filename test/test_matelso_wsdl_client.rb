@@ -136,6 +136,74 @@ class TestMatelsoWsdlClient < Test::Unit::TestCase
       end
     end
     
+    # this will fail in an Rails environment since snakecase has (within savon) has
+    # it's problems within rails.
+    should "find correct data in the response hash" do
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      response = { 
+        :method_response => { "method_result" => { :item => "wrong" } },
+        :methodResponse  => { :methodResult => { :item => "wrong" } },
+        :method_response => { :method_result => { :item => "correct" } }
+      }
+      assert_equal "correct", client.send(:get_response_hash, response, 
+                                          ["methodResponse", :methodResult])
+    end
+    
+    should "handle a response hash correctly" do
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      deathstar = proc { |hsh| assert false, "block should not be yielded: #{hsh}" }
+
+      # 1. failed
+      hsh = { 
+        :status => "failed", :data => { :message => :fubar, :additional_message => :snafu}
+      }
+      p = client.send(:handle_response_hash, hsh, &deathstar) 
+      assert_equal "error", p[:status]
+      assert_equal "fubar snafu", p[:msg]
+      
+      # 2. unknown
+      [ "blah", "", nil, 1, :three, :fu, "unknown" ].each do |status|
+        hsh = { 
+          :status => status, :fubar => :snafu
+        }
+        p = client.send(:handle_response_hash, hsh, &deathstar) 
+        assert_equal "unknown", p[:status], "Failed for #{status}"
+        assert_equal :snafu, p[:data][:fubar], "Failed for #{status}"
+      end
+      
+      # 3. success
+      hsh = { 
+        :status => "success", :fubar => :snafu
+      }
+      p = client.send(:handle_response_hash, hsh) { |hshs| hshs.merge(:snafu => :fubar) }
+      assert_equal "ok", p[:status]
+      assert_equal :snafu, p[:fubar]
+      assert_equal :fubar, p[:snafu]
+    end
+    
+    should "add wsdl to key names" do
+      client = get_client(MatelsoWsdlClient::MRS::Client)
+      assert_raises(LocalJumpError) { client.send(:add_soap_prefix) }
+      
+      p = client.send(:add_soap_prefix) { { :fubar => :snauf } }
+      assert_equal ["wsdl:fubar"], p.keys
+      p = client.send(:add_soap_prefix, :snafu => :fubar) { { :fubar => :snauf } }
+      assert_equal ["wsdl:snafu"], p.keys
+
+      p = client.send(:add_soap_prefix) { { :fubar => :snauf, "fred" => "smith" } }
+      assert_equal ["wsdl:fred", "wsdl:fubar"], p.keys.sort
+      assert_equal "smith", p['wsdl:fred']
+      assert_equal :snauf, p['wsdl:fubar']
+
+      
+      p = client.send(:add_soap_prefix, "hello" => "world", :mock => :me) do 
+        { :fubar => :snauf, "fred" => "smith" } 
+      end
+      assert_equal ["wsdl:hello", "wsdl:mock"], p.keys.sort
+      assert_equal :me, p['wsdl:mock']
+      assert_equal "world", p['wsdl:hello']
+    end
+    
     should "create_subscriber work if parameters defined" do
       parameters = {
         :salutation            => "Herr", 
